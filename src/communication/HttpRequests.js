@@ -8,7 +8,7 @@ export async function getTickerList()
     return await response.json();
 }
 
-export async function makeExperiment(ticker, trainFrom, trainTo, testFrom, testTo) {
+export async function makeExperiment(ticker, trainFrom, trainTo, testFrom, testTo, model) {
     const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/experiments/make', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -17,7 +17,8 @@ export async function makeExperiment(ticker, trainFrom, trainTo, testFrom, testT
             train_from: trainFrom,
             train_to: trainTo,
             test_from: testFrom,
-            test_to: testTo
+            test_to: testTo,
+            model: model
         }),
     });
 
@@ -68,4 +69,55 @@ export async function saveExperiment(id)
     })
 
     return await response.json();
+}
+
+export async function login(username, password)
+{
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/authentication/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: username, password: password}),
+    });
+
+    return await response.json();
+}
+
+export async function getMostGrowingStocks(comparisonDate, forecastDate)
+{
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/stocks/most-growing?comparison_date=' + comparisonDate + "&forecast_date=" + forecastDate, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+    })
+
+    return await response.json();
+}
+
+export async function getUserList(limit, offset)
+{
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/users/list?limit=' + limit + '&offset=' + offset, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+    })
+
+    return await response.json();
+}
+
+export async function getUser(id)
+{
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/users/' + id, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+    })
+
+    return response.json();
+}
+
+export async function deleteUser(id)
+{
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/users/' + id, {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json'},
+    })
+
+    return response.json();
 }

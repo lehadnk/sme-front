@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
+    getStockPriceHistory,
     getTickerDates,
     getTickerList,
     makeExperiment,
-    getStockPriceHistory,
     saveExperiment
 } from "../communication/HttpRequests.js";
-import { Line } from "react-chartjs-2";
+import {Line} from "react-chartjs-2";
 import {
-    Chart as ChartJS,
     CategoryScale,
+    Chart as ChartJS,
+    Legend,
     LinearScale,
-    PointElement,
     LineElement,
+    PointElement,
     Title,
-    Tooltip,
-    Legend
+    Tooltip
 } from "chart.js";
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -40,7 +40,8 @@ export default function MakeExperimentPage() {
     const [stockPriceHistory, setStockPriceHistory] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [experimentInProgress, setExperimentInProgress] = useState(false);
-    const navigate = useNavigate();
+    const [selectedModel, setSelectedModel] = useState("gradient_boosting");
+    const [notification, setNotification] = useState(null);  // Add notification state
 
     useEffect(() => {
         getTickerList().then(setTickers);
@@ -61,9 +62,8 @@ export default function MakeExperimentPage() {
         const startDate = new Date(dates.from);
         const endDate = new Date(dates.to);
 
-        // Clone dates properly
         const trainTo = new Date(endDate);
-        trainTo.setDate(trainTo.getDate() - 366);
+        trainTo.setDate(trainTo.getDate() - 120);
 
         const testFrom = new Date(trainTo);
         testFrom.setDate(testFrom.getDate() + 1);
@@ -86,7 +86,8 @@ export default function MakeExperimentPage() {
             selectedDates.trainFrom.toISOString().split('T')[0],
             selectedDates.trainTo.toISOString().split('T')[0],
             selectedDates.testFrom.toISOString().split('T')[0],
-            selectedDates.testTo.toISOString().split('T')[0]
+            selectedDates.testTo.toISOString().split('T')[0],
+            selectedModel
         );
         setExperimentResult(result);
         setExperimentInProgress(false);
@@ -96,7 +97,14 @@ export default function MakeExperimentPage() {
         setExperimentInProgress(true);
         const result = await saveExperiment(experimentResult.id);
         setExperimentInProgress(false);
-        navigate(`/models/${selectedTicker}`);  // Use navigate() for redirection
+        setNotification("Модель сохранена");  // Show success notification
+        setTimeout(() => setNotification(null), 5000); // Hide notification after 5 seconds
+    };
+
+    const handleSaveModelClick = () => {
+        if (!experimentInProgress) {
+            handleSaveModel();
+        }
     };
 
     const allDatesSelected = Object.values(selectedDates).every(date => date !== null);
@@ -112,7 +120,7 @@ export default function MakeExperimentPage() {
                 borderColor: "rgba(75,192,192,1)",
                 backgroundColor: "rgba(75,192,192,0.2)",
                 fill: true,
-                pointRadius: 0, // Hide the points (circles)
+                pointRadius: 0,
             },
             {
                 label: "Тестовые данные",
@@ -120,7 +128,7 @@ export default function MakeExperimentPage() {
                 borderColor: "rgba(255,99,132,1)",
                 backgroundColor: "rgba(255,99,132,0.2)",
                 fill: true,
-                pointRadius: 0, // Hide the points (circles)
+                pointRadius: 0,
             }
         ]
     } : null;
@@ -134,7 +142,7 @@ export default function MakeExperimentPage() {
                 borderColor: "rgba(75,192,192,1)",
                 backgroundColor: "rgba(75,192,192,0.2)",
                 fill: true,
-                pointRadius: 0, // Hide the points (circles)
+                pointRadius: 0,
             }
         ]
     } : null;
@@ -163,7 +171,6 @@ export default function MakeExperimentPage() {
                 </ul>
             </div>
 
-            {/* Main Content: Date Selection */}
             <div className="flex-1 p-6 relative">
                 {isLoading ? (
                     <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
@@ -173,14 +180,12 @@ export default function MakeExperimentPage() {
                     <div>
                         <h2 className="text-xl font-bold mb-4">{selectedTicker} - Выберите даты</h2>
 
-                        {/* Show available date range */}
                         <p className="text-gray-700 mb-4">
                             Доступный диапазон: <strong>{availableDates.from}</strong> по <strong>{availableDates.to}</strong>
                         </p>
 
-                        {/* Display stock price history chart */}
                         {stockPriceGraphData && (
-                            <div className="mb-14" style={{ maxHeight: "400px" }}>
+                            <div className="mb-14" style={{ maxHeight: "250px" }}>
                                 <h3 className="text-lg font-semibold mb-2">История цен акций</h3>
                                 <Line
                                     data={stockPriceGraphData}
@@ -206,7 +211,7 @@ export default function MakeExperimentPage() {
                         <div className="grid grid-cols-2 gap-4">
                             {Object.keys(selectedDates).map((key) => (
                                 <div key={key}>
-                                    <label className="block mb-1 capitalize">{fieldNamesInRussian[key]}</label> {/* Use Russian field names */}
+                                    <label className="block mb-1 capitalize">{fieldNamesInRussian[key]}</label>
                                     <DatePicker
                                         selected={selectedDates[key]}
                                         onChange={(date) => setSelectedDates(prev => ({ ...prev, [key]: date }))}
@@ -222,7 +227,19 @@ export default function MakeExperimentPage() {
                             ))}
                         </div>
 
-                        {/* Experiment Button */}
+                        <div className="mt-4">
+                            <label className="block mb-1 capitalize">Тип модели</label>
+                            <select
+                                value={selectedModel}
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                                className="w-full p-2 border rounded"
+                            >
+                                <option value="gradient_boosting">Градиентный бустинг</option>
+                                <option value="random_forest">Случайный лес</option>
+                                <option value="xgboost">Экстремальный градиентный бустинг</option>
+                            </select>
+                        </div>
+
                         {allDatesSelected && !experimentInProgress && (
                             <button
                                 className="mt-4 p-2 bg-blue-500 text-white rounded"
@@ -236,9 +253,8 @@ export default function MakeExperimentPage() {
                     <p className="text-gray-500">Выберите тикер для начала.</p>
                 )}
 
-                {/* Display the graph if experiment data exists */}
                 {experimentResult && graphData && (
-                    <div className="mt-6" style={{ maxHeight: "400px" }}>
+                    <div className="mt-6" style={{ maxHeight: "250px" }}>
                         <h3 className="text-xl font-bold mb-4">Прогнозирование vs Тестовые данные</h3>
                         <Line
                             data={graphData}
@@ -250,6 +266,7 @@ export default function MakeExperimentPage() {
                                         ticks: { maxRotation: 0, minRotation: 0 },
                                     },
                                     y: {
+                                        min: 0,
                                         ticks: {
                                             callback: (value) => value.toFixed(2),
                                         },
@@ -267,8 +284,9 @@ export default function MakeExperimentPage() {
 
                         {/* Save model button */}
                         <button
-                            className="mt-4 p-2 bg-green-500 text-white rounded"
-                            onClick={handleSaveModel}
+                            onClick={handleSaveModelClick}
+                            className={`mt-4 p-2 rounded ${experimentInProgress ? 'bg-gray-400' : 'bg-green-500'} text-white`}
+                            disabled={experimentInProgress}
                         >
                             Сохранить модель
                         </button>
@@ -278,6 +296,13 @@ export default function MakeExperimentPage() {
                 {experimentInProgress && (
                     <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+                    </div>
+                )}
+
+                {/* Notification */}
+                {notification && (
+                    <div className="fixed top-0 left-1/2 transform -translate-x-1/2 p-4 bg-green-500 text-white rounded-md">
+                        {notification}
                     </div>
                 )}
             </div>
