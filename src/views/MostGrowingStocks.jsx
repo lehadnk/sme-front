@@ -13,7 +13,7 @@ export default function MostGrowingStocks() {
             const currentDate = new Date("2018-31-01");
 
             // Мокаем дату прогноза как 2019-07-01
-            const forecastDate = new Date("2019-01-31");
+            const forecastDate = new Date("2019-02-01");
 
             const formattedCurrentDate = currentDate.toISOString().split('T')[0];
             const formattedForecastDate = forecastDate.toISOString().split('T')[0];
@@ -28,7 +28,7 @@ export default function MostGrowingStocks() {
     }, []);
 
     // Форматируем дату прогноза
-    const forecastDate = new Date("2019-04-01");
+    const forecastDate = new Date("2019-02-01");
     const formattedForecastDate = forecastDate.toLocaleDateString("ru-RU");
 
     return (
