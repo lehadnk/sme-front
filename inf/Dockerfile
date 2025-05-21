@@ -7,6 +7,9 @@ COPY ./src ./src
 COPY public ./public
 COPY index.html ./index.html
 COPY .env.prod ./.env
+COPY .postcss.config.js ./.postcss.config.js
+COPY .tailwind.config.js ./.tailwind.config.js
+COPY .vite.config.js ./.vite.config.js
 RUN npm run build
 
 FROM nginx:alpine
