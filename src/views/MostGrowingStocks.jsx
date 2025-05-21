@@ -10,10 +10,10 @@ export default function MostGrowingStocks() {
             setLoading(true);
 
             // Мокаем текущую дату как 2019-04-01
-            const currentDate = new Date("2019-04-01");
+            const currentDate = new Date("2018-31-01");
 
             // Мокаем дату прогноза как 2019-07-01
-            const forecastDate = new Date("2019-07-01");
+            const forecastDate = new Date("2019-03-01");
 
             const formattedCurrentDate = currentDate.toISOString().split('T')[0];
             const formattedForecastDate = forecastDate.toISOString().split('T')[0];
