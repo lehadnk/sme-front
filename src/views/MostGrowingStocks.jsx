@@ -28,7 +28,7 @@ export default function MostGrowingStocks() {
     }, []);
 
     // Форматируем дату прогноза
-    const forecastDate = new Date("2019-07-01");
+    const forecastDate = new Date("2019-04-01");
     const formattedForecastDate = forecastDate.toLocaleDateString("ru-RU");
 
     return (
