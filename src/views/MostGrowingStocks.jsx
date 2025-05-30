@@ -57,8 +57,8 @@ export default function MostGrowingStocks() {
                                     {(stock.growth * 100).toFixed(2)}%
                                 </span>
                             </p>
-                            <p>Вчерашнее закрытие: ${stock.today_close.toFixed(2)}</p>
-                            <p>Прогнозируемое закрытие: ${stock.forecast_close.toFixed(2)}</p>
+                            <p>Вчерашнее закрытие: {stock.today_close.toFixed(2)}₽</p>
+                            <p>Прогнозируемое закрытие: {stock.forecast_close.toFixed(2)}₽</p>
                         </div>
                     ))}
                 </div>
